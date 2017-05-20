@@ -1,0 +1,20 @@
+{
+  "name": "game-of-life",
+  "version": "1.0.0",
+  "description": "Game Of Life",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_PATH=. ./node_modules/mocha/bin/mocha -c test/**/*.js"
+  },
+  "author": "Tamil Vendhan K",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^3.4.1",
+    "should": "^11.2.1"
+  },
+  "dependencies": {
+    "average-color": "^1.0.0",
+    "is-color": "^0.2.0",
+    "randomcolor": "^0.5.2"
+  }
+}
