@@ -1,38 +1,66 @@
 'use strict';
 
 const WebSocket = require('ws');
+const SocketIOClient = require('socket.io-client');
 const config = require('config');
 const logger = require('logger');
 
-const World = require('lib/world');
 const constants = require('lib/constants');
-const util = require('lib/util');
 
-const world = new World(config.world);
-const gameOfLifeServer = new WebSocket.Server(config.world.server);
+const relayServer = new WebSocket.Server(config.server);
+const gameOfLifeClientURL = `ws://${config.world.server.host}:${config.world.server.port}`;
+const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
 
-gameOfLifeServer.on('connection', function connection(ws, req) {
+relayServer.on('connection', function connection(ws, req) {
+
+	let address = req.connection.remoteAddress;
+
+	gameOfLifeClient.emit(constants.NEW_CLIENT, {address: address}, function fn(error, data) {
+		send(ws, data);
+	});
 
   ws.on('message', function incoming(message) {
     
-    let payload = JSON.parse(message);
+    let payload;
 
-    if(payload.type === constants.NEW_CLIENT) {
-    	return send(ws, {layout: world.layout, color: util.ipToColor(payload.address)});
+    try {
+    	payload = JSON.parse(message);
     }
+    catch(ex) {
+    	return logger.error('message error', {message: message});
+    }
+    logger.info('Incoming Message', payload);
+    return gameOfLifeClient.emit(payload.event, payload.data, function fn(error, data) {
+    	if(error) {
+    		logger.error(message, error);
+    		return sendError(ws, error);
+    	}
+    	send(ws, data);
+    });
 
   });
 
 });
 
-world.on(constants.EVOLUTION_EVENT, function fn(worldLayout) {
+function sendError(client, data) {
+	send(client, data);
+}
 
-	gameOfLifeServer.clients.forEach(function each(client) {
+function send(client, data) {
+	client.send(JSON.stringify(data));
+}
+
+gameOfLifeClient.on('message', function fn(data) {
+	relayServer.clients.forEach(function each(client) {
     if(client.readyState === WebSocket.OPEN) {
-      client.send(worldLayout);
+      send(client, data);
     }
   });
 
 });
 
-world.begin();
+gameOfLifeClient.on('error', function fn(error) {
+	console.log(error);
+});
+
+logger.info('GameOfLife Relay Server running on ' + config.server.port);

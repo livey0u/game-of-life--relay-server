@@ -113,54 +113,66 @@ describe('World unit tests', function fn() {
 
 		let config = {size: 3, interval: 100};
 		let world;
+		let data = {};
 
 		before(function fn() {
 			world = new World(config);
 		});
 		
-		it('Should throw INVALID_CELL error for invalid parameter', function fn() {
+		it('Should throw INVALID_DATA error for invalid parameter', function fn() {
 
-			world.setCell.should.throw(Error, {message: 'INVALID_CELL'});
+			world.setCell.should.throw(Error, {message: 'INVALID_DATA'});
+
+		});
+
+		it('Should throw EVOLVED_ALREADY error if passed "lastEvolvedAt" value is differs with "evolvedAt" value', function fn() {
+
+			world.setCell.bind(world, data).should.throw(Error, {message: 'EVOLVED_ALREADY'});
+
+		});
+
+		it('Should throw INVALID_CELL error for invalid parameter', function fn() {
+			data.lastEvolvedAt = world.evolvedAt = Date.now();
+			world.setCell.bind(world, data).should.throw(Error, {message: 'INVALID_CELL'});
 
 		});
 
 		it('Should throw INVALID_X_VALUE error for invalid x value in cell', function fn() {
-
-			world.setCell.bind(world, {}).should.throw(Error, {message: 'INVALID_X_VALUE'});
+			data.cell = {};
+			world.setCell.bind(world, data).should.throw(Error, {message: 'INVALID_X_VALUE'});
 
 		});
 
 		it('Should throw INVALID_Y_VALUE error for invalid y value in cell', function fn() {
-
-			world.setCell.bind(world, {x: 0}).should.throw(Error, {message: 'INVALID_Y_VALUE'});
+			data.cell.x = 0;
+			world.setCell.bind(world, data).should.throw(Error, {message: 'INVALID_Y_VALUE'});
 
 		});
 
 		it('Should throw INVALID_STATE_VALUE error for invalid state value in cell', function fn() {
-
-			world.setCell.bind(world, {x: 0, y: 0}).should.throw(Error, {message: 'INVALID_STATE_VALUE'});
+			data.cell.y = 0;
+			world.setCell.bind(world, data).should.throw(Error, {message: 'INVALID_STATE_VALUE'});
 
 		});
 
 		it('Should throw INVALID_COLOR_VALUE error for invalid color in cell', function fn() {
-
-			world.setCell.bind(world, {x: 0, y: 0, state: 1, color: [1234, 1232, null]}).should.throw(Error, {message: 'INVALID_COLOR_VALUE'});
+			data.cell.state = 1;
+			world.setCell.bind(world, data).should.throw(Error, {message: 'INVALID_COLOR_VALUE'});
 
 		});
 
 		it('Should set cell on layout if a valid cell passed in', function fn() {
 
-			let cell = {x: 0, y: 0, state: 1, color: [123, 45, 67]};
-
-			world.setCell(cell);
+			data.cell.color = 'hsl(319, 89.09%, 54.15%)';
+			world.setCell(data);
 
 			should.exist(world.layout);
 			should.exist(world.layout[0]);
 			should.exist(world.layout[0][0]);
 			should.exist(world.layout[0][0].state);
-			should.equal(world.layout[0][0].state, cell.state);
+			should.equal(world.layout[0][0].state, data.cell.state);
 			should.exist(world.layout[0][0].color);
-			should.equal(world.layout[0][0].color, cell.color);
+			should.equal(world.layout[0][0].color, data.cell.color);
 			
 
 		});
@@ -171,9 +183,11 @@ describe('World unit tests', function fn() {
 
 		let config = {size: 3, interval: 100};
 		let world;
+		let lastEvolvedAt;
 
 		before(function fn() {
 			world = new World(config);
+			lastEvolvedAt = world.evolvedAt = Date.now();
 		});
 		
 		it('Should return 0 live neighbours when there are no live neighbours around the given cell', function fn() {
@@ -188,7 +202,7 @@ describe('World unit tests', function fn() {
 
 		it('Should return 1 live neighbours where there is one live neighbours around the given cell', function fn() {
 
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
 
 			let liveNeighbours = world.getLiveNeighbours({x: 1, y: 1});
 
@@ -200,8 +214,8 @@ describe('World unit tests', function fn() {
 
 		it('Should return 2 live neighbours where there are 2 live neighbours around the given cell', function fn() {
 
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 2, y: 0, state: 1, color: [123, 45, 67]});
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 2, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
 
 			let liveNeighbours = world.getLiveNeighbours({x: 1, y: 1});
 
@@ -216,18 +230,26 @@ describe('World unit tests', function fn() {
 	describe('#evolveCell', function fn() {
 
 		let config = {size: 3, interval: 100};
-		let world;
+		let world = new World(config);
+		let lastEvolvedAt;
 
-		before(function fn() {
-			world = new World(config);
+		before(function fn(done) {
+			world.setup();
+			lastEvolvedAt = world.evolvedAt = Date.now();
+			done();
+		});
+
+		afterEach(function fn(done) {
+			world.setup();
+			done();
 		});
 		
 		it('Should evolve to dead cell, if a cell has fewer than two live neighbours.', function fn() {
 
-			let aliveCell = {x: 1, y: 1, state: 1, color: [123, 45, 67]};
+			let aliveCell = {lastEvolvedAt: lastEvolvedAt, cell: {x: 1, y: 1, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}};
 			world.setCell(aliveCell);
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			let evolvedCell = world.evolveCell(aliveCell);
+			world.setCell({lastEvolvedAt: lastEvolvedAt, cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}});
+			let evolvedCell = world.evolveCell(aliveCell.cell);
 
 			should.exist(evolvedCell);
 			should.exist(evolvedCell.state);
@@ -237,13 +259,13 @@ describe('World unit tests', function fn() {
 
 		it('Should evolve to dead cell, if a cell has more than three live neighbours.', function fn() {
 
-			let aliveCell = {x: 1, y: 1, state: 1, color: [123, 45, 67]};
+			let aliveCell = {cell: {x: 1, y: 1, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt};
 			world.setCell(aliveCell);
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 1, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 2, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 0, y: 1, state: 1, color: [123, 45, 67]});
-			let evolvedCell = world.evolveCell(aliveCell);
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 1, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 2, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 0, y: 1, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			let evolvedCell = world.evolveCell(aliveCell.cell);
 
 			should.exist(evolvedCell);
 			should.exist(evolvedCell.state);
@@ -253,45 +275,45 @@ describe('World unit tests', function fn() {
 
 		it('Should evolve to next generation alive, if a cell has two live neighbours.', function fn() {
 
-			let aliveCell = {x: 1, y: 1, state: 1, color: [123, 45, 67]};
+			let aliveCell = {cell: {x: 1, y: 1, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt};
 			world.setCell(aliveCell);
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 1, y: 0, state: 1, color: [123, 45, 67]});
-			let evolvedCell = world.evolveCell(aliveCell);
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 1, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			let evolvedCell = world.evolveCell(aliveCell.cell);
 
 			should.exist(evolvedCell);
 			should.exist(evolvedCell.state);
-			should.equal(evolvedCell.state, 0);
+			should.equal(evolvedCell.state, 1);
 
 		});
 
 		it('Should evolve to next generation alive, if a cell has three live neighbours.', function fn() {
 
-			let aliveCell = {x: 1, y: 1, state: 1, color: [123, 45, 67]};
+			let aliveCell = {cell: {x: 1, y: 1, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt};
 			world.setCell(aliveCell);
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 1, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 2, y: 0, state: 1, color: [123, 45, 67]});
-			let evolvedCell = world.evolveCell(aliveCell);
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 1, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 2, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			let evolvedCell = world.evolveCell(aliveCell.cell);
 
 			should.exist(evolvedCell);
 			should.exist(evolvedCell.state);
-			should.equal(evolvedCell.state, 0);
+			should.equal(evolvedCell.state, 1);
 
 		});
 
 		it('Should evolve to live cell, if a cell has three live neighbours.', function fn() {
 
-			let deadCell = {x: 1, y: 1, state: 0, color: [123, 45, 67]};
+			let deadCell = {cell: {x: 1, y: 1, state: 0, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt};
 			world.setCell(deadCell);
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 1, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 2, y: 0, state: 1, color: [123, 45, 67]});
-			let evolvedCell = world.evolveCell(deadCell);
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 1, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 2, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			let evolvedCell = world.evolveCell(deadCell.cell);
 
 			should.exist(evolvedCell);
 			should.exist(evolvedCell.state);
-			should.equal(evolvedCell.state, 0);
+			should.equal(evolvedCell.state, 1);
 
 		});
 
@@ -301,18 +323,20 @@ describe('World unit tests', function fn() {
 
 		let config = {size: 3, interval: 100};
 		let world;
+		let lastEvolvedAt;
 
 		before(function fn() {
 			world = new World(config);
+			lastEvolvedAt = world.evolvedAt = Date.now();
 		});
 
 		it('Should evolve world to next generation.', function fn() {
 
-			let deadCell = {x: 1, y: 1, state: 0, color: [123, 45, 67]};
+			let deadCell = {cell: {x: 1, y: 1, state: 0, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt};
 			world.setCell(deadCell);
-			world.setCell({x: 0, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 1, y: 0, state: 1, color: [123, 45, 67]});
-			world.setCell({x: 2, y: 0, state: 1, color: [123, 45, 67]});
+			world.setCell({cell: {x: 0, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 1, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
+			world.setCell({cell: {x: 2, y: 0, state: 1, color: 'hsl(319, 89.09%, 54.15%)'}, lastEvolvedAt: lastEvolvedAt});
 			world.evolve();
 
 			// dead cell evolved into to living cell
@@ -342,11 +366,12 @@ describe('World unit tests', function fn() {
 		
 		it(`Should emit ${constants.EVOLUTION_EVENT} upon completion of evolution`, function fn(done) {
 
-			world.on(constants.EVOLUTION_EVENT, function fn(layout) {
-				should.exist(layout);
-				should.equal(layout.length, config.size);
-				should.exist(layout[0].length);
-				should.equal(layout[0].length, config.size);
+			world.on(constants.EVOLUTION_EVENT, function fn(data) {
+				should.exist(data);
+				should.exist(data.layout);
+				should.equal(data.layout.length, config.size);
+				should.exist(data.layout[0].length);
+				should.equal(data.layout[0].length, config.size);
 				done();
 			});
 

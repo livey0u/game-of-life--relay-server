@@ -1,10 +1,10 @@
 {
 	"name": "GameOfLifeServer",
 	"server": {
-		"port": 3000,
+		"port": 3001
 	},
 	"world": {
-		"size": "6",
-		"interval": "200"
+		"size": 6,
+		"interval": 3000
 	}
 }
