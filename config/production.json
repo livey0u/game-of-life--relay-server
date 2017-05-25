@@ -9,7 +9,7 @@
 		"interval": 1000,
 		"server": {
 			"port": 80,
-			"host": "localhost"
+			"host": "https://guarded-thicket-49148.herokuapp.com"
 		}
 	}
 }
