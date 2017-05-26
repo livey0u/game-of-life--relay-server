@@ -4,7 +4,7 @@ const WebSocket = require('ws');
 const SocketIOClient = require('socket.io-client');
 const config = require('config');
 const logger = require('logger');
-
+logger.info('index', config);
 const constants = require('lib/constants');
 
 const relayServer = new WebSocket.Server(config.server);
