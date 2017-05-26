@@ -6,8 +6,8 @@ const config = require('config');
 const logger = require('logger');
 logger.info('index', config);
 const constants = require('lib/constants');
-
-const relayServer = new WebSocket.Server(config.server);
+const wsServerConfig = {port: process.env.PORT || config.server.port};
+const relayServer = new WebSocket.Server(wsServerConfig);
 const gameOfLifeClientURL = `ws://${config.world.server.host}:${config.world.server.port}`;
 const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
 
@@ -63,4 +63,4 @@ gameOfLifeClient.on('error', function fn(error) {
 	console.log(error);
 });
 
-logger.info('GameOfLife Relay Server running on ' + config.server.port);
+logger.info('GameOfLife Relay Server running on ' + wsServerConfig.port);
