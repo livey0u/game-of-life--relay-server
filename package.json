@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "average-color": "^1.0.0",
+    "config": "^1.26.1",
     "is-color": "^0.2.0",
     "randomcolor": "^0.5.2",
     "socket.io": "^2.0.1",
