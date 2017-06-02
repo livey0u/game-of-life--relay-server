@@ -15,6 +15,7 @@
     "should": "^11.2.1"
   },
   "dependencies": {
+    "jsondiffpatch": "^0.2.4",
     "average-color": "^1.0.0",
     "config": "^1.26.1",
     "is-color": "^0.2.0",
