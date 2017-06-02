@@ -47,16 +47,15 @@ function sendError(client, data) {
 }
 
 function send(client, data) {
-	client.send(JSON.stringify(data));
+  if(client.readyState === WebSocket.OPEN) {
+    client.send(JSON.stringify(data));
+  }
 }
 
 gameOfLifeClient.on('message', function fn(data) {
 	relayServer.clients.forEach(function each(client) {
-    if(client.readyState === WebSocket.OPEN) {
-      send(client, data);
-    }
+    send(client, data);
   });
-
 });
 
 gameOfLifeClient.on('error', function fn(error) {
