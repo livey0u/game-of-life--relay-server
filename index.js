@@ -6,7 +6,7 @@ const config = require('config');
 const logger = require('logger');
 logger.info('index', config);
 const constants = require('lib/constants');
-const wsServerConfig = {port: process.env.PORT || config.server.port, host: config.server.host};
+const wsServerConfig = {port: config.server.port || process.env.PORT, host: config.server.host};
 const relayServer = new WebSocket.Server(wsServerConfig);
 const gameOfLifeClientURL = `ws://${config.world.server.host}:${config.world.server.port}`;
 const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
