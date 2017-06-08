@@ -4,7 +4,7 @@
   "description": "Game Of Life",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_PATH=. NODE_ENV=production node index.js"
+    "start": "NODE_PATH=. node index.js"
   },
   "author": "Tamil Vendhan K",
   "license": "MIT",
