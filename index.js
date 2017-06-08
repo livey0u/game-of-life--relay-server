@@ -42,6 +42,16 @@ relayServer.on('connection', function connection(ws, req) {
 
   });
 
+  ws.on('close', function f() {
+    logger.info('Web Client disonnected');
+  });
+
+  ws.on('error', function f(error) {
+    logger.info('Web Client error', error);
+  });
+
+  logger.info('Web Client Connected', {address: address});
+
 });
 
 function sendError(client, data) {
