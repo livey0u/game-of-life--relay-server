@@ -5,7 +5,7 @@ const WebSocket = require('ws');
 const SocketIOClient = require('socket.io-client');
 const config = require('config');
 const logger = require('logger');
-const constants = require('lib/constants');
+const constants = require('constants');
 
 const server = http.createServer();
 const wsServerConfig = {port: process.env.PORT || config.server.port, host: config.server.host};
