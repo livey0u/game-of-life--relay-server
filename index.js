@@ -10,7 +10,7 @@ const constants = require('constants');
 const server = http.createServer();
 const wsServerConfig = {port: process.env.PORT || config.server.port, host: config.server.host};
 const relayServer = new WebSocket.Server({server: server});
-const gameOfLifeClientURL = `ws://${config.world.server.host}:${config.world.server.port}`;
+const gameOfLifeClientURL = config.world.url;
 const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
 
 relayServer.on('connection', function connection(ws, req) {
