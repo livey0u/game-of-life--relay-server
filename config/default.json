@@ -2,7 +2,7 @@
 	"name": "GameOfLifeServer",
 	"server": {
 		"port": 3001,
-		"host": "localhost"
+		"host": "0.0.0.0"
 	},
 	"world": {
 		"size": 9,
