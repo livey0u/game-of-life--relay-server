@@ -13,15 +13,16 @@ const relayServer = new WebSocket.Server({server: server});
 const gameOfLifeClientURL = config.world.url;
 const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
 
-relayServer.on('connection', function connection(ws, req) {
+relayServer.on('connection', function onConnection(ws, req) {
 
 	let address = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'] : req.connection.remoteAddress;
 
 	gameOfLifeClient.emit(constants.NEW_CLIENT, {address: address}, function fn(error, data) {
+    logger.info('Web Client Connected', {event: data.event});
 		send(ws, data);
 	});
 
-  ws.on('message', function incoming(message) {
+  ws.on('message', function onIncoming(message) {
     
     let payload;
 
@@ -42,15 +43,15 @@ relayServer.on('connection', function connection(ws, req) {
 
   });
 
-  ws.on('close', function f() {
+  ws.on('close', function onClose() {
     logger.info('Web Client disonnected');
   });
 
-  ws.on('error', function f(error) {
+  ws.on('error', function onError(error) {
     logger.info('Web Client error', error);
   });
 
-  logger.info('Web Client Connected', {address: address, headers: req.headers, remoteAddress: req.connection.remoteAddress});
+  logger.info('Web Client Connected', {address: address});
 
 });
 
@@ -64,17 +65,17 @@ function send(client, data) {
   }
 }
 
-gameOfLifeClient.on('message', function fn(data) {
+gameOfLifeClient.on('message', function onMessage(data) {
 	relayServer.clients.forEach(function each(client) {
     send(client, data);
   });
 });
 
-gameOfLifeClient.on('error', function fn(error) {
+gameOfLifeClient.on('error', function onError(error) {
 	logger.error('World server client connection error', error);
 });
 
-server.listen(wsServerConfig.port, wsServerConfig.host, function f(error) {
+server.listen(wsServerConfig.port, wsServerConfig.host, function onListen(error) {
   if(error) {
     return logger.error('Unable to listen to server', error);
   } 
