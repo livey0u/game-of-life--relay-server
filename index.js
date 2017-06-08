@@ -1,12 +1,15 @@
 'use strict';
 
+const http = require('http');
 const WebSocket = require('ws');
 const SocketIOClient = require('socket.io-client');
 const config = require('config');
 const logger = require('logger');
 const constants = require('lib/constants');
+
+const server = http.createServer();
 const wsServerConfig = {port: process.env.PORT || config.server.port, host: config.server.host};
-const relayServer = new WebSocket.Server(wsServerConfig);
+const relayServer = new WebSocket.Server({server: server});
 const gameOfLifeClientURL = `ws://${config.world.server.host}:${config.world.server.port}`;
 const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
 
@@ -58,7 +61,12 @@ gameOfLifeClient.on('message', function fn(data) {
 });
 
 gameOfLifeClient.on('error', function fn(error) {
-	console.log(error);
+	logger.error('World server client connection error', error);
 });
 
-logger.info('GameOfLife Relay Server running on ' + wsServerConfig.port);
+server.listen(wsServerConfig.port, wsServerConfig.host, function f(error) {
+  if(error) {
+    return logger.error('Unable to listen to server', error);
+  } 
+  logger.info('GameOfLife Relay Server running on ' + wsServerConfig.port);
+});
