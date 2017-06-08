@@ -50,7 +50,7 @@ relayServer.on('connection', function connection(ws, req) {
     logger.info('Web Client error', error);
   });
 
-  logger.info('Web Client Connected', {address: address});
+  logger.info('Web Client Connected', {address: address, headers: req.headers, remoteAddress: req.connection.remoteAddress});
 
 });
 
