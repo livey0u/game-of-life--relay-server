@@ -15,7 +15,7 @@ const gameOfLifeClient = new SocketIOClient(gameOfLifeClientURL);
 
 relayServer.on('connection', function connection(ws, req) {
 
-	let address = req.headers['x-real-ip'] ? req.headers['x-real-ip'] : req.connection.remoteAddress;
+	let address = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'] : req.connection.remoteAddress;
 
 	gameOfLifeClient.emit(constants.NEW_CLIENT, {address: address}, function fn(error, data) {
 		send(ws, data);
