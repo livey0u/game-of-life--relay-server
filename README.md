@@ -20,11 +20,4 @@ Production:
 
 	1. `npm start`
 
-## Notes
-	
-	Update world server url in `src/config.js` if production url for world server is changed.
-
-
-
-
 
