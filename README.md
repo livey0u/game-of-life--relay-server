@@ -20,4 +20,10 @@ Production:
 
 	1. NODE_ENV=production npm start
 
+## Heroku Deployment
+
+After setting up heroku cli, following command would deploy.
+
+	1. git push heroku master
+
 
