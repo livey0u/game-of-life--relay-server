@@ -11,8 +11,18 @@ Event middleware that relays events between world server & clients.
 
 ## Start
 
-1. `NODE_ENV=development NODE_PATH=. node index.js`
+Development:
 
+	1. `NODE_ENV=development NODE_PATH=. node index.js`
+	
+
+Production:
+
+	1. `npm start`
+
+## Notes
+	
+	Update world server url in `src/config.js` if production url for world server is changed.
 
 
 
